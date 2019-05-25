@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from enum import Enum, auto, unique
+from enum import Enum, unique
 from github import GithubObject
 import logging
 import re
@@ -73,14 +73,14 @@ def publish(releases, artifact_dir, release_name, release_body, github_api_url, 
 
 @unique
 class CleanupScope(Enum):
-    CURRENT_JOB = auto()
-    CURRENT_BUILD = auto()
-    PREVIOUS_FINISHED_BUILDS = auto()
+    CURRENT_JOB = 1
+    CURRENT_BUILD = 2
+    PREVIOUS_FINISHED_BUILDS = 3
 
 @unique
 class CleanupRelease(Enum):
-    COMPLETE = auto()
-    INCOMPLETE = auto()
+    COMPLETE = 1
+    INCOMPLETE = 2
 
 def _enum_to_choices(enum_calss):
     return [e.name.lower().replace('_', '-') for e in enum_calss]
