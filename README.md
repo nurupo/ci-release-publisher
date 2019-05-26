@@ -509,7 +509,7 @@ Here is a table summarizing the three ways to make releases:
         - CIRP_GITHUB_REPO_SLUG="nurupo/ci-release-publisher"
     ```
 
-3. Make sure the GitHib repository you want to publish releases to has at least one commit, since GitHub releases are just constructs on top of git tags and you can't have git tags without having any commits.
+3. Make sure the GitHub repository you want to publish releases to has at least one commit, since GitHub releases are just constructs on top of git tags and you can't have git tags without having any commits.
 
 In contrast to publishing to the same repository, CI Release Publisher doesn't set `target_commitish` to `$TRAVIS_COMMIT` in [the release creating GtHub API call](https://developer.github.com/v3/repos/releases/#create-a-release) when publishing to a different repository, it leaves it empty, which means that [the release will be created with a tag referencing the default branch for the GitHub rpository](https://developer.github.com/v3/repos/releases/#create-a-release). It's done so because if you set `target_commitish` to `$TRAVIS_COMMIT`, which is the commit that was just pushed to the main repository, and such commit doesn't exist in the different repository -- GitHub API would error out since it can't create a tag for a non-existing commit. It's a fair assumption that the different repository won't be up-to-date with whatever was just pushed to the main repository. You can override this behavior by providing `--*target-commitish` arguments to CI Release Publisher's `store` and `publish` commands.
 
