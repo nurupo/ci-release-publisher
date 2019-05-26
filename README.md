@@ -226,13 +226,13 @@ There are primary three different ways to use CI Release Publisher based on the 
 
 Here is a table summarizing the three ways to make releases:
 
-|                                             | Same repo | Different repo | Separate       |
-|---------------------------------------------|-----------|----------------|----------------|
-| Main repo access token permissions          | Write     | Read           | Read           |
-| Different repo access token permissions     | -         | Write          | Write          |
-| Access token stored in Travis-CI of         | Main repo | Main repo      | Different repo |
-| Artifact production happens on Travis-CI of | Main repo | Main repo      | Different repo |
-| Releases made on every main repo push       | Yes       | Yes            | No             |
+|                                              | Same repo | Different repo | Separate       |
+|----------------------------------------------|-----------|----------------|----------------|
+| Main repo access token permissions           | Write     | Read           | Read           |
+| Different repo access token permissions      | -         | Write          | Write          |
+| Access token stored in Travis-CI of          | Main repo | Main repo      | Different repo |
+| Artifact production happens on Travis-CI of  | Main repo | Main repo      | Different repo |
+| Releases can be made on every main repo push | Yes       | Yes            | No             |
 
 ### Publishing to the same repository
 
