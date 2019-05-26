@@ -12,7 +12,7 @@ from . import github
 from . import latest_release, numbered_release, tag_release
 from . import temporary_store_release
 from . import travis
-from .__version__ import __description__, __title__, __version__
+from .__version__ import __description__, __version__
 
 def main():
     try:
