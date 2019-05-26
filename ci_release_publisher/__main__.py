@@ -21,7 +21,7 @@ def main():
         release_kinds = [latest_release, numbered_release, tag_release]
 
         parser = argparse.ArgumentParser(description=__description__)
-        parser.add_argument('--version', action='version', version='%(prog)s {}'.format(__version__))
+        parser.add_argument('--version', action='version', version='{}'.format(__version__))
 
         # Travis
         parser_travis = parser.add_mutually_exclusive_group()

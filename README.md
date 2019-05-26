@@ -607,7 +607,7 @@ Note that CI Release Publisher uses `$TRAVIS_` environment variables to know whi
   <summary>ci-release-publisher --version</summary>
 
   ```
-  ci-release-publisher 0.1.0
+  0.1.0
   ```
 </details>
 
