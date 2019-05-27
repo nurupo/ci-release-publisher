@@ -192,13 +192,15 @@ You can download the package, verify its signature and install with something li
 ```bash
 wget "$(pip download ci_release_publisher | grep 'http.*ci_release_publisher-' | awk '{print $NF}').asc"
 gpg --no-default-keyring --keyring "$PWD/tmp_keyring.gpg" --recv-key '1D4E 9375 AD9B D50F 80FF  55AC 6F55 0977 4B1E F0C2'
-gpg --no-default-keyring --keyring "$PWD/tmp_keyring.gpg" --verify ci_release_publisher-*.asc && echo "Signature matched" || echo "Signature didn't match"
+gpg --no-default-keyring --keyring "$PWD/tmp_keyring.gpg" --verify ci_release_publisher-*.asc
+# Read the output of the command above, you can't rely on its exit code as it's
+# 0, i.e. success, even if the key has expired or has been revoked
 rm ci_release_publisher-*.asc
 rm tmp_keyring.gpg
 pip install --no-index --find-links "$PWD" ci_release_publisher-*
 ```
 
-Of course, that won't verify any of the dependencies CI Release Publisher is using.
+Of course that won't verify any of the dependencies CI Release Publisher is using.
 
 ## Usage
 
