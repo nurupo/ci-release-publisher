@@ -617,8 +617,7 @@ Note that CI Release Publisher uses `$TRAVIS_` environment variables to know whi
   <summary>ci-release-publisher --help</summary>
 
   ```
-  usage: ci-release-publisher [-h] [--version]
-                              [--travis-instance-org | --travis-instance-com | --travis-instance-custom TRAVIS_URL]
+  usage: ci-release-publisher [-h] [--version] [--travis-api-url TRAVIS_API_URL]
                               [--github-api-url GITHUB_API_URL]
                               [--tag-prefix TAG_PREFIX]
                               [--tag-prefix-incomplete-releases TAG_PREFIX_TMP]
@@ -643,18 +642,14 @@ Note that CI Release Publisher uses `$TRAVIS_` environment variables to know whi
   optional arguments:
     -h, --help            show this help message and exit
     --version             show program's version number and exit
-    --travis-instance-org
-                          Use API of the https://travis-ci.org instance.
-    --travis-instance-com
-                          Use API of the https://travis-ci.com instance.
-    --travis-instance-custom TRAVIS_URL
-                          Use API of Travis-CI running under a personal domain.
-                          Specify the Travis-CI instance URL, not the API
-                          endpoint URL, e.g. "https://travis.example.com".
+    --travis-api-url TRAVIS_API_URL
+                          Use a custom Travis-CI API URL, e.g. for self-hosted
+                          Travis-CI Enterprise instance. Should be an URL to the
+                          API endpoint, e.g. "https://travis.example.com/api".
     --github-api-url GITHUB_API_URL
-                          Use custom GitHib API URL, e.g. for self-hosted GitHub
-                          Enterprise instance. Should be an URL to the API
-                          endpoint, e.g. "https://api.github.com".
+                          Use a custom GitHib API URL, e.g. for self-hosted
+                          GitHub Enterprise instance. Should be an URL to the
+                          API endpoint, e.g. "https://api.github.com".
     --tag-prefix TAG_PREFIX
                           git tag prefix to use when creating releases.
     --tag-prefix-incomplete-releases TAG_PREFIX_TMP
@@ -861,8 +856,6 @@ JSONDecodeError: Expecting value: line 1 column 1 (char 0)
 ```
 
 it's likely that Travis-CI can't authenticate CI Release Publisher using the GitHub access token provided. Make sure you have set the right scope on the access token, e.g. `repo` for Travis-CI on `.com` and `public_repo` for Travis-CI on `.org`, and that you have logged into Travis-CI web interface at least once as the GitHub user whose access token you are using, authorizing Travis-CI to access that user's GitHub account, so that Travis-CI would create an account for the GitHub user.
-
-Also make sure that you are telling CI Release Publisher to use the right Travis-CI API endpoint with `--travis-instance-com` and `--travis-instance-org` options. CI Release Publisher defaults to using `--travis-instance-com` as [Travis-CI is deprecating the use of `.org` domain](https://blog.travis-ci.com/2018-05-02-open-source-projects-on-travis-ci-com-with-github-apps).
 
 If you have access to `$GITHUB_ACCESS_TOKEN` locally on your machine, you can test Travis-CI authentication with GitHub access token using this cURL command:
 

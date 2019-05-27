@@ -23,18 +23,11 @@ def main():
         parser = argparse.ArgumentParser(description=__description__)
         parser.add_argument('--version', action='version', version='{}'.format(__version__))
 
-        # Travis
-        parser_travis = parser.add_mutually_exclusive_group()
-        parser_travis.add_argument('--travis-instance-org', dest='travis_type', action='store_const', const='org',
-                                    help='Use API of the https://travis-ci.org instance.')
-        parser_travis.add_argument('--travis-instance-com', dest='travis_type', action='store_const', const='com',
-                                    help='Use API of the https://travis-ci.com instance.')
-        parser_travis.add_argument('--travis-instance-custom', dest='travis_type', metavar='TRAVIS_URL', type=str,
-                                    help='Use API of Travis-CI running under a personal domain. Specify the Travis-CI instance URL, not the API endpoint URL, e.g. "https://travis.example.com".')
-        parser.set_defaults(travis_type='com')
+        parser.add_argument('--travis-api-url', type=str, default='',
+                            help='Use a custom Travis-CI API URL, e.g. for self-hosted Travis-CI Enterprise instance. Should be an URL to the API endpoint, e.g. "https://travis.example.com/api".')
 
-        parser.add_argument('--github-api-url', type=str, default="",
-                            help='Use custom GitHib API URL, e.g. for self-hosted GitHub Enterprise instance. Should be an URL to the API endpoint, e.g. "https://api.github.com".')
+        parser.add_argument('--github-api-url', type=str, default='',
+                            help='Use a custom GitHib API URL, e.g. for self-hosted GitHub Enterprise instance. Should be an URL to the API endpoint, e.g. "https://api.github.com".')
 
         parser.add_argument('--tag-prefix', type=str, default=config.tag_prefix, help='git tag prefix to use when creating releases.')
         parser.add_argument('--tag-prefix-incomplete-releases', type=str, default=config.tag_prefix_tmp, dest='tag_prefix_tmp',
@@ -67,21 +60,21 @@ def main():
 
         args = parser.parse_args()
 
-        # Sanity-check arguments
-
-        travis_url = args.travis_type
-        travis_api_url = '{}/api'.format(travis_url)
-        if args.travis_type == 'org':
-            travis_url = 'https://travis-ci.org'
-            travis_api_url = 'https://api.travis-ci.org'
-        elif args.travis_type == 'com':
-            travis_url = 'https://travis-ci.com'
-            travis_api_url = 'https://api.travis-ci.com'
-
-        if not args.github_api_url:
-            args.github_api_url = "https://api.github.com"
-
         try:
+            # Sanity-check arguments
+
+            if not args.travis_api_url:
+                travis_build_web_url = env.required('TRAVIS_BUILD_WEB_URL')
+                if travis_build_web_url.startswith('https://travis-ci.org/'):
+                    args.travis_api_url = 'https://api.travis-ci.org'
+                elif travis_build_web_url.startswith('https://travis-ci.com/'):
+                    args.travis_api_url = 'https://api.travis-ci.com'
+                else:
+                    raise exception.CIReleasePublisherError('Unknown Travis-CI URL prefix in TRAVIS_BUILD_WEB_URL={}'.format(travis_build_web_url))
+
+            if not args.github_api_url:
+                args.github_api_url = "https://api.github.com"
+
             if not args.tag_prefix:
                 raise exception.CIReleasePublisherError('--tag-prefix can\'t be empty.')
             if not args.tag_prefix_tmp:
@@ -98,10 +91,10 @@ def main():
                 if len(os.listdir(args.artifact_dir)) <= 0:
                     raise exception.CIReleasePublisherError('No artifacts found in "{}" directory.'.format(args.artifact_dir))
                 releases = github.github(github_token, args.github_api_url).get_repo(github_repo_slug).get_releases()
-                temporary_store_release.publish_with_args(args, releases, args.artifact_dir, args.github_api_url, travis_api_url, travis_url)
+                temporary_store_release.publish_with_args(args, releases, args.artifact_dir, args.github_api_url, args.travis_api_url)
             elif args.command == 'cleanup_store':
                 releases = github.github(github_token, args.github_api_url).get_repo(github_repo_slug).get_releases()
-                temporary_store_release.cleanup_with_args(args, releases, args.github_api_url, travis_api_url)
+                temporary_store_release.cleanup_with_args(args, releases, args.github_api_url, args.travis_api_url)
             elif args.command == 'collect':
                 if not os.path.isdir(args.artifact_dir):
                     raise exception.CIReleasePublisherError('Directory "{}" doesn\'t exist.'.format(args.artifact_dir))
@@ -116,10 +109,10 @@ def main():
                     raise exception.CIReleasePublisherError('You must specify what kind of release you would like to publish.')
                 releases = github.github(github_token, args.github_api_url).get_repo(github_repo_slug).get_releases()
                 for r in release_kinds:
-                    r.publish_with_args(args, releases, args.artifact_dir, args.github_api_url, travis_api_url, travis_url)
+                    r.publish_with_args(args, releases, args.artifact_dir, args.github_api_url, args.travis_api_url)
             elif args.command == 'cleanup_publish':
                 releases = github.github(github_token, args.github_api_url).get_repo(github_repo_slug).get_releases()
-                branch_unfinished_build_numbers = travis.Travis.github_auth(github_token, travis_api_url).branch_unfinished_build_numbers(env.required('TRAVIS_REPO_SLUG'), env.required('TRAVIS_BRANCH'))
+                branch_unfinished_build_numbers = travis.Travis.github_auth(github_token, args.travis_api_url).branch_unfinished_build_numbers(env.required('TRAVIS_REPO_SLUG'), env.required('TRAVIS_BRANCH'))
                 for r in release_kinds:
                     r.cleanup(releases, branch_unfinished_build_numbers, args.github_api_url)
             else:

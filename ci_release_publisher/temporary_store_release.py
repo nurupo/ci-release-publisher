@@ -37,18 +37,18 @@ def publish_args(parser):
     parser.add_argument('--release-name', type=str, help='Release name text. If not specified a predefined text is used.')
     parser.add_argument('--release-body', type=str, help='Release body text. If not specified a predefined text is used.')
 
-def publish_with_args(args, releases, artifact_dir, github_api_url, travis_api_url, travis_url):
-    publish(releases, artifact_dir, args.release_name, args.release_body, github_api_url, travis_url)
+def publish_with_args(args, releases, artifact_dir, github_api_url, travis_api_url):
+    publish(releases, artifact_dir, args.release_name, args.release_body, github_api_url)
 
-def publish(releases, artifact_dir, release_name, release_body, github_api_url, travis_url):
+def publish(releases, artifact_dir, release_name, release_body, github_api_url):
     github_token        = env.required('CIRP_GITHUB_ACCESS_TOKEN') if env.optional('CIRP_GITHUB_ACCESS_TOKEN') else env.required('GITHUB_ACCESS_TOKEN')
     github_repo_slug    = env.required('CIRP_GITHUB_REPO_SLUG') if env.optional('CIRP_GITHUB_REPO_SLUG') else env.required('TRAVIS_REPO_SLUG')
-    travis_repo_slug    = env.required('TRAVIS_REPO_SLUG')
     travis_branch       = env.required('TRAVIS_BRANCH')
     travis_commit       = env.required('TRAVIS_COMMIT')
     travis_build_number = env.required('TRAVIS_BUILD_NUMBER')
     travis_job_number   = env.required('TRAVIS_JOB_NUMBER').split('.')[1]
     travis_job_id       = env.required('TRAVIS_JOB_ID')
+    travis_job_web_url  = env.required('TRAVIS_JOB_WEB_URL')
 
     tag_name = _tag_name(travis_branch, travis_build_number, travis_job_number)
     logging.info('* Creating a temporary store release with the tag name "{}".'.format(tag_name))
@@ -60,10 +60,10 @@ def publish(releases, artifact_dir, release_name, release_body, github_api_url, 
              'Temporary store release {}'
              .format(tag_name),
         message=release_body if release_body else
-                ('Auto-generated temporary release containing build artifacts of [Travis-CI job #{}]({}/{}/jobs/{}).\n\n'
+                ('Auto-generated temporary release containing build artifacts of [Travis-CI job #{}]({}).\n\n'
                 'This release was created by the CI Release Publisher script, which will automatically delete it in the current or following builds.\n\n'
                 'You should not manually delete this release, unless you don\'t use the CI Release Publisher script anymore.')
-                .format(travis_job_id, travis_url, travis_repo_slug, travis_job_id),
+                .format(travis_job_id, travis_job_web_url),
         draft=True,
         prerelease=True,
         target_commitish=travis_commit if not env.optional('CIRP_GITHUB_REPO_SLUG') else GithubObject.NotSet)

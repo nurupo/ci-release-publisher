@@ -112,21 +112,21 @@ def publish_validate_args(args):
         raise exception.CIReleasePublisherError('You must specify at least one of --numbered-release-keep-* options specifying the strategy for keeping numbered releases.')
     return True
 
-def publish_with_args(args, releases, artifact_dir, github_api_url, travis_api_url, travis_url):
+def publish_with_args(args, releases, artifact_dir, github_api_url, travis_api_url):
     if not args.numbered_release:
         return
     publish(releases, artifact_dir, args.numbered_release_keep_count, args.numbered_release_keep_time, args.numbered_release_name, args.numbered_release_body,
-            args.numbered_release_draft, args.numbered_release_prerelease, args.numbered_release_target_commitish, github_api_url, travis_url)
+            args.numbered_release_draft, args.numbered_release_prerelease, args.numbered_release_target_commitish, github_api_url)
 
-def publish(releases, artifact_dir, numbered_release_keep_count, numbered_release_keep_time, numbered_release_name, numbered_release_body, numbered_release_draft, numbered_release_prerelease, numbered_release_target_commitish, github_api_url, travis_url):
-    github_token        = env.required('CIRP_GITHUB_ACCESS_TOKEN') if env.optional('CIRP_GITHUB_ACCESS_TOKEN') else env.required('GITHUB_ACCESS_TOKEN')
-    github_repo_slug    = env.required('CIRP_GITHUB_REPO_SLUG') if env.optional('CIRP_GITHUB_REPO_SLUG') else env.required('TRAVIS_REPO_SLUG')
-    travis_repo_slug    = env.required('TRAVIS_REPO_SLUG')
-    travis_branch       = env.required('TRAVIS_BRANCH')
-    travis_commit       = env.required('TRAVIS_COMMIT')
-    travis_build_number = env.required('TRAVIS_BUILD_NUMBER')
-    travis_build_id     = env.required('TRAVIS_BUILD_ID')
-    travis_tag          = env.optional('TRAVIS_TAG')
+def publish(releases, artifact_dir, numbered_release_keep_count, numbered_release_keep_time, numbered_release_name, numbered_release_body, numbered_release_draft, numbered_release_prerelease, numbered_release_target_commitish, github_api_url):
+    github_token         = env.required('CIRP_GITHUB_ACCESS_TOKEN') if env.optional('CIRP_GITHUB_ACCESS_TOKEN') else env.required('GITHUB_ACCESS_TOKEN')
+    github_repo_slug     = env.required('CIRP_GITHUB_REPO_SLUG') if env.optional('CIRP_GITHUB_REPO_SLUG') else env.required('TRAVIS_REPO_SLUG')
+    travis_branch        = env.required('TRAVIS_BRANCH')
+    travis_commit        = env.required('TRAVIS_COMMIT')
+    travis_build_number  = env.required('TRAVIS_BUILD_NUMBER')
+    travis_build_id      = env.required('TRAVIS_BUILD_ID')
+    travis_build_web_url = env.required('TRAVIS_BUILD_WEB_URL')
+    travis_tag           = env.optional('TRAVIS_TAG')
 
     if travis_tag:
         return
@@ -140,8 +140,8 @@ def publish(releases, artifact_dir, numbered_release_keep_count, numbered_releas
         name=numbered_release_name if numbered_release_name else
              'CI build of {} branch #{}'.format(travis_branch, travis_build_number),
         message=numbered_release_body if numbered_release_body else
-                'This is an auto-generated release based on [Travis-CI build #{}]({}/{}/builds/{})'
-                .format(travis_build_id, travis_url, travis_repo_slug, travis_build_id),
+                'This is an auto-generated release based on [Travis-CI build #{}]({})'
+                .format(travis_build_id, travis_build_web_url),
         draft=True,
         prerelease=numbered_release_prerelease,
         target_commitish=numbered_release_target_commitish if numbered_release_target_commitish else travis_commit if not env.optional('CIRP_GITHUB_REPO_SLUG') else GithubObject.NotSet)

@@ -50,20 +50,21 @@ def publish_args(parser):
 def publish_validate_args(args):
     return args.tag_release
 
-def publish_with_args(args, releases, artifact_dir, github_api_url, travis_api_url, travis_url):
+def publish_with_args(args, releases, artifact_dir, github_api_url, travis_api_url):
     if not args.tag_release:
         return
     publish(releases, artifact_dir, args.tag_release_name, args.tag_release_body, args.tag_release_draft, args.tag_release_prerelease,
-            args.tag_release_target_commitish, args.tag_release_force_recreate, github_api_url, travis_api_url, travis_url)
+            args.tag_release_target_commitish, args.tag_release_force_recreate, github_api_url, travis_api_url)
 
-def publish(releases, artifact_dir, tag_release_name, tag_release_body, tag_release_draft, tag_release_prerelease, tag_release_target_commitish, tag_release_force_recreate, github_api_url, travis_api_url, travis_url):
-    github_token        = env.required('CIRP_GITHUB_ACCESS_TOKEN') if env.optional('CIRP_GITHUB_ACCESS_TOKEN') else env.required('GITHUB_ACCESS_TOKEN')
-    github_repo_slug    = env.required('CIRP_GITHUB_REPO_SLUG') if env.optional('CIRP_GITHUB_REPO_SLUG') else env.required('TRAVIS_REPO_SLUG')
-    travis_repo_slug    = env.required('TRAVIS_REPO_SLUG')
-    travis_commit       = env.required('TRAVIS_COMMIT')
-    travis_build_number = env.required('TRAVIS_BUILD_NUMBER')
-    travis_build_id     = env.required('TRAVIS_BUILD_ID')
-    travis_tag          = env.optional('TRAVIS_TAG')
+def publish(releases, artifact_dir, tag_release_name, tag_release_body, tag_release_draft, tag_release_prerelease, tag_release_target_commitish, tag_release_force_recreate, github_api_url, travis_api_url):
+    github_token         = env.required('CIRP_GITHUB_ACCESS_TOKEN') if env.optional('CIRP_GITHUB_ACCESS_TOKEN') else env.required('GITHUB_ACCESS_TOKEN')
+    github_repo_slug     = env.required('CIRP_GITHUB_REPO_SLUG') if env.optional('CIRP_GITHUB_REPO_SLUG') else env.required('TRAVIS_REPO_SLUG')
+    travis_repo_slug     = env.required('TRAVIS_REPO_SLUG')
+    travis_commit        = env.required('TRAVIS_COMMIT')
+    travis_build_number  = env.required('TRAVIS_BUILD_NUMBER')
+    travis_build_id      = env.required('TRAVIS_BUILD_ID')
+    travis_build_web_url = env.required('TRAVIS_BUILD_WEB_URL')
+    travis_tag           = env.optional('TRAVIS_TAG')
 
     if not travis_tag:
         return
@@ -84,8 +85,8 @@ def publish(releases, artifact_dir, tag_release_name, tag_release_body, tag_rele
         tag=tag_name_tmp,
         name=tag_release_name if tag_release_name else tag_name,
         message=tag_release_body if tag_release_body else
-                'This is an auto-generated release based on [Travis-CI build #{}]({}/{}/builds/{})'
-                .format(travis_build_id, travis_url, travis_repo_slug, travis_build_id),
+                'This is an auto-generated release based on [Travis-CI build #{}]({})'
+                .format(travis_build_id, travis_build_web_url),
         draft=True,
         prerelease=tag_release_prerelease,
         target_commitish=tag_release_target_commitish if tag_release_target_commitish else travis_commit if not env.optional('CIRP_GITHUB_REPO_SLUG') else GithubObject.NotSet)
