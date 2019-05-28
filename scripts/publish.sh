@@ -2,22 +2,22 @@
 
 set -euo pipefail
 
-if [ ! -z "$TRAVIS_PULL_REQUEST" ] && [ "$TRAVIS_PULL_REQUEST" != "false" ]; then
-  echo "Skipping publishing in a Pull Request"
-  exit 0
-fi
+. .travis/cirp/check_precondition.sh
 
 if [ ! -z "$TRAVIS_TEST_RESULT" ] && [ "$TRAVIS_TEST_RESULT" != "0" ]; then
   echo "Build has failed, skipping publishing"
   exit 0
 fi
 
-if [ -z "$ARTIFACTS_DIR" ]; then
-  echo "Error: Environment varialbe ARTIFACTS_DIR is not set."
+if [ "$#" != "1" ]; then
+  echo "Error: No arguments provided. Please specify a directory containing artifacts as the first argument."
   exit 1
 fi
 
-pip install ci_release_publisher
+ARTIFACTS_DIR="$1"
+
+. .travis/cirp/install.sh
+
 ci-release-publisher publish --latest-release \
                              --latest-release-prerelease \
                              --numbered-release \

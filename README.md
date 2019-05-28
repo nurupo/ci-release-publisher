@@ -257,9 +257,9 @@ Here is a table summarizing the three ways to make releases:
     At the end of the `script` section of all artifact producing jobs add:
 
     ```yaml
-    - .travis/ci_release_publisher_cleanup1.sh
-    - .travis/ci_release_publisher_store.sh "$TRAVIS_BUILD_DIR/artifacts"
-    - .travis/ci_release_publisher_cleanup2.sh
+    - .travis/cirp/cleanup1.sh
+    - .travis/cirp/store.sh "$TRAVIS_BUILD_DIR/artifacts"
+    - .travis/cirp/cleanup2.sh
     ```
 
     where `$TRAVIS_BUILD_DIR/artifacts` is the path where the artifacts can be found. This will store the artifacts in a temporary store release. We will download them back and delete these temporary store releases in a publishing stage later in the build.
@@ -269,8 +269,8 @@ Here is a table summarizing the three ways to make releases:
     At the end of `script` section of all jobs that are in artifact producing stages but don't actually produce artifacts, add:
 
     ```yaml
-    - .travis/ci_release_publisher_cleanup1.sh
-    - .travis/ci_release_publisher_cleanup2.sh
+    - .travis/cirp/cleanup1.sh
+    - .travis/cirp/cleanup2.sh
     ```
 
     This will remove the temporary store releases in case of a build failure so that they don't litter your Releases page.
@@ -281,10 +281,10 @@ Here is a table summarizing the three ways to make releases:
     if: type != pull_request
     script:
       - export ARTIFACTS_DIR="$(mktemp -d)"
-      - .travis/ci_release_publisher_collect.sh
-      - .travis/ci_release_publisher_cleanup4.sh
-      - .travis/ci_release_publisher_publish.sh
-      - .travis/ci_release_publisher_cleanup5.sh
+      - .travis/cirp/collect.sh "$ARTIFACTS_DIR"
+      - .travis/cirp/cleanup4.sh
+      - .travis/cirp/publish.sh "$ARTIFACTS_DIR"
+      - .travis/cirp/cleanup5.sh
     ```
 
     where `$ARTIFACTS_DIR` is the path where artifacts from the temporary store releases will be downloaded.
@@ -292,7 +292,7 @@ Here is a table summarizing the three ways to make releases:
     Now identify all stages that don't produce artifacts between the first artifact producing stage and the publishing stage, if there are any. Add the following at the end of `script` section of those jobs:
 
     ```yaml
-    - .travis/ci_release_publisher_cleanup3.sh
+    - .travis/cirp/cleanup3.sh
     ```
 
     This will remove the temporary store releases in case of a build failure so that they don't litter your Releases page.
@@ -360,9 +360,9 @@ Here is a table summarizing the three ways to make releases:
     We will add the following to the end of the `script` section of Job 3 and 5:
 
     ```yaml
-    - .travis/ci_release_publisher_cleanup1.sh
-    - .travis/ci_release_publisher_store.sh "$TRAVIS_BUILD_DIR/artifacts"
-    - .travis/ci_release_publisher_cleanup2.sh
+    - .travis/cirp/cleanup1.sh
+    - .travis/cirp/store.sh "$TRAVIS_BUILD_DIR/artifacts"
+    - .travis/cirp/cleanup2.sh
     ```
 
     Since jobs 3 and 5 are artifact producing jobs, this means that the stages they are in, Stage 2 and Stage 4, are the artifact producing stages.
@@ -370,8 +370,8 @@ Here is a table summarizing the three ways to make releases:
     We will add the following at the end of `script` section of all jobs in Stage 2 and 4 that are not jobs 3 and 5, that's Job 2 and 6:
 
     ```yaml
-    - .travis/ci_release_publisher_cleanup1.sh
-    - .travis/ci_release_publisher_cleanup2.sh
+    - .travis/cirp/cleanup1.sh
+    - .travis/cirp/cleanup2.sh
     ```
 
     Since Stage 4 is the last artifact producing stage, we can add the publishing job to any stage after it -- Stage 5, 6 or 7 -- or create a new publishing stage, e.g. Stage 8. For the sake of the example, let's say that we want to add the publishing job to Stage 6.
@@ -384,10 +384,10 @@ Here is a table summarizing the three ways to make releases:
       if: type != pull_request
       script:
         - export ARTIFACTS_DIR="$(mktemp -d)"
-        - .travis/ci_release_publisher_collect.sh
-        - .travis/ci_release_publisher_cleanup4.sh
-        - .travis/ci_release_publisher_publish.sh
-        - .travis/ci_release_publisher_cleanup5.sh
+        - .travis/cirp/collect.sh "$ARTIFACTS_DIR"
+        - .travis/cirp/cleanup4.sh
+        - .travis/cirp/publish.sh "$ARTIFACTS_DIR"
+        - .travis/cirp/cleanup5.sh
     ```
 
     With Stage 2 being the first artifact producing stage and Stage 6 being the publishing stage, there are only two stages between them that are not artifact producing stages -- Stage 3 and 5.
@@ -395,7 +395,7 @@ Here is a table summarizing the three ways to make releases:
     We will add the following to `script` section of all jobs in Stage 3 and 5, that's Job 4 and 7:
 
     ```yaml
-    - .travis/ci_release_publisher_cleanup3.sh
+    - .travis/cirp/cleanup3.sh
     ```
 
     Now just to add the branch exception and we are done:
@@ -423,38 +423,38 @@ Here is a table summarizing the three ways to make releases:
           env: JOB="2" DESC="This job doesn't produce any artifacts"
           script:
             - ...
-            - .travis/ci_release_publisher_cleanup1.sh
-            - .travis/ci_release_publisher_cleanup2.sh
+            - .travis/cirp/cleanup1.sh
+            - .travis/cirp/cleanup2.sh
         - stage: "Stage 2"
           env: JOB="3" DESC="This job produces artifacts"
           script:
             - ...
-            - .travis/ci_release_publisher_cleanup1.sh
-            - .travis/ci_release_publisher_store.sh "$TRAVIS_BUILD_DIR/artifacts"
-            - .travis/ci_release_publisher_cleanup2.sh
+            - .travis/cirp/cleanup1.sh
+            - .travis/cirp/store.sh "$TRAVIS_BUILD_DIR/artifacts"
+            - .travis/cirp/cleanup2.sh
         - stage: "Stage 3"
           env: JOB="4" DESC="This job doesn't produce any artifacts"
           script:
             - ...
-            - .travis/ci_release_publisher_cleanup3.sh
+            - .travis/cirp/cleanup3.sh
         - stage: "Stage 4"
           env: JOB="5" DESC="This job produces artifacts"
           script:
             - ...
-            - .travis/ci_release_publisher_cleanup1.sh
-            - .travis/ci_release_publisher_store.sh "$TRAVIS_BUILD_DIR/artifacts"
-            - .travis/ci_release_publisher_cleanup2.sh
+            - .travis/cirp/cleanup1.sh
+            - .travis/cirp/store.sh "$TRAVIS_BUILD_DIR/artifacts"
+            - .travis/cirp/cleanup2.sh
         - stage: "Stage 4"
           env: JOB="6" DESC="This job doesn't produce any artifacts"
           script:
             - ...
-            - .travis/ci_release_publisher_cleanup1.sh
-            - .travis/ci_release_publisher_cleanup2.sh
+            - .travis/cirp/cleanup1.sh
+            - .travis/cirp/cleanup2.sh
         - stage: "Stage 5"
           env: JOB="7" DESC="This job doesn't produce any artifacts"
           script:
             - ...
-            - .travis/ci_release_publisher_cleanup3.sh
+            - .travis/cirp/cleanup3.sh
         - stage: "Stage 6"
           env: JOB="8" DESC="This job doesn't produce any artifacts"
           script:
@@ -464,10 +464,10 @@ Here is a table summarizing the three ways to make releases:
           if: type != pull_request
           script:
             - export ARTIFACTS_DIR="$(mktemp -d)"
-            - .travis/ci_release_publisher_collect.sh
-            - .travis/ci_release_publisher_cleanup4.sh
-            - .travis/ci_release_publisher_publish.sh
-            - .travis/ci_release_publisher_cleanup5.sh
+            - .travis/cirp/collect.sh "$ARTIFACTS_DIR"
+            - .travis/cirp/cleanup4.sh
+            - .travis/cirp/publish.sh "$ARTIFACTS_DIR"
+            - .travis/cirp/cleanup5.sh
         - stage: "Stage 7"
           env: JOB="9" DESC="This job doesn't produce any artifacts"
           script:
@@ -481,23 +481,25 @@ Here is a table summarizing the three ways to make releases:
     ...
     ```
 
-    `ci_release_publisher_*.sh` are helper scripts that you can find in the `scripts` directory.
+    `.travis/cirp/*.sh` are helper scripts that you can find in the `scripts` directory.
 
 9. General dos and don'ts.
 
     Dos:
-    - Do use `ci_release_publisher_*.sh` helper scripts, they check for some preconditions to be met before installing all of CI Release Publisher's dependencies and calling it.
-    - Do modify `ci_release_publisher_publish.sh` script to call the `publish` command with the arguments you want.
-    - Do things between the `ci_release_publisher_collect.sh` and `ci_release_publisher_publish.sh` calls, e.g. calculate hashes of the artifacts and include them as a file in the artifacts directory for `ci_release_publisher_publish.sh` to upload, or modify `ci_release_publisher_publish.sh` to calculate the hashes and pass them as the release body text argument, or generate a changelog and set it as the release body text.
-    - Do modify `ci_release_publisher_store.sh` script to call the `store` command with the arguments you want.
-    - Do use Travis-CI's `allow_failures` feature if you want to allow an artifact producing job to fail, the `ci_release_publisher_cleanup*.sh` scripts will make sure that the build artifacts of these jobs are not included in the release.
-    - Do set `--tag-prefix` on all of the python script invocations in all `ci_release_publisher_*.sh` scripts if you already use branch names or tag names that start with `ci-`or `_ci-` for something else, as CI Release publisher might delete them.
-    - Do set `--tag-prefix-incomplete-releases` on all of the python script invocations in all `ci_release_publisher_*.sh` scripts if you have branches or tags that differ by the starting `_`, e.g. `<name>` and `_<name>`, as CI Release publisher might delete them.
+    - Do use `.travis/cirp/*.sh` helper scripts, they check for some important preconditions to be met before installing all of CI Release Publisher's dependencies and calling it.
+    - Do modify `publish.sh` script to call the `publish` command with the arguments you want.
+    - Do run things between the `collect.sh` and `publish.sh` calls. For example calculate hashes of the artifacts and include them as a file in the artifacts directory for `publish.sh` to upload, or modify `publish.sh` to calculate the hashes and pass them as the release body text argument, or generate a changelog and set it as the release body text.
+    - Do modify `store.sh` script to call the `store` command with the arguments you want.
+    - Do modify `install.sh` for your needs.
+    - Do modify `check_precondition.sh` for your needs.
+    - Do use Travis-CI's `allow_failures` feature if you want to allow an artifact producing job to fail, the `cleanup*.sh` scripts will make sure that the build artifacts of these jobs are not included in the release.
+    - Do set `--tag-prefix` on all of the python script invocations in all `*.sh` scripts if you already use branch names or tag names that start with `ci-`or `_ci-` for something else, as CI Release publisher might delete them.
+    - Do set `--tag-prefix-incomplete-releases` on all of the python script invocations in all `*.sh` scripts if you have branches or tags that differ by the starting `_`, e.g. `<name>` and `_<name>`, as CI Release publisher might delete them.
 
     Don'ts:
-    - Don't modify `ci_release_publisher_cleanup*.sh` scripts, especially the arguments passed to `cleanup` commands. They do the exactly right thing, changing them will very likely break releases.
-    - Don't remove `ci_release_publisher_cleanup*.sh` calls from your `travis.yml`. They are rather numerous, but they are there to minimize the littering of the Releases page with draft releases. Also, some other commands, like `store`, depend on the exact `cleanup` command to be called right before them and will misbehave if the cleanup is removed.
-    - Don't re-arrange the order in which `ci_release_publisher_*.sh` scripts are called, doing so will break the logic.
+    - Don't modify `cleanup*.sh` scripts, especially the arguments passed to `cleanup` commands. They are the exact arguments you want to call `cleanup` commands with, changing them without having a deep understanding of why they are needed will very likely break things.
+    - Don't remove `cleanup*.sh` calls from your `travis.yml`. They are rather numerous, but they are there to minimize the littering of the Releases page with draft releases. Also, some other commands, like `store`, depend on the exact `cleanup` command to be called right before them and will misbehave if the cleanup is removed.
+    - Don't re-arrange the order in which `*.sh` scripts are called, doing so will break the logic.
 
 ### Publishing to a different repository
 

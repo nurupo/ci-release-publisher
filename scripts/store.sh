@@ -2,10 +2,7 @@
 
 set -euo pipefail
 
-if [ ! -z "$TRAVIS_PULL_REQUEST" ] && [ "$TRAVIS_PULL_REQUEST" != "false" ]; then
-  echo "Skipping publishing in a Pull Request"
-  exit 0
-fi
+. .travis/cirp/check_precondition.sh
 
 if [ ! -z "$TRAVIS_TEST_RESULT" ] && [ "$TRAVIS_TEST_RESULT" != "0" ]; then
   echo "Build has failed, skipping publishing"
@@ -17,7 +14,8 @@ if [ "$#" != "1" ]; then
   exit 1
 fi
 
-ARTIFACTS_DIR="$(readlink -f -- $1)"
+ARTIFACTS_DIR="$1"
 
-pip install ci_release_publisher
+. .travis/cirp/install.sh
+
 ci-release-publisher store "$ARTIFACTS_DIR"
