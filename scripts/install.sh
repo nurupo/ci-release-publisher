@@ -4,9 +4,12 @@
 # the key and even if they do, `gpg --verify` returns success with a revoked
 # or expired key. Thus it's probably better to verify the signature yourself,
 # on your local machine, and then rely on the hash on the CI.
-VERSION="0.1.0rc1"
-FILENAME="ci_release_publisher-$VERSION-py3-none-any.whl"
-HASH="5a7f0ad6ccfb6017974db42fb1ecfe8b3f9cc1c16ac68107a94979252baa16e3"
+
+# Set the variables below for the version of ci_release_publisher you would like
+# to use. The set values are provided as an example.
+#VERSION="0.1.0rc1"
+#FILENAME="ci_release_publisher-$VERSION-py3-none-any.whl"
+#HASH="5a7f0ad6ccfb6017974db42fb1ecfe8b3f9cc1c16ac68107a94979252baa16e3"
 
 # Get Python >=3.5
 if [ "$TRAVIS_OS_NAME" == "osx" ]; then
