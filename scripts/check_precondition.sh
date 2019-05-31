@@ -1,7 +1,7 @@
 # Put here checks that exit with 0 for the cases when you don't want the CI
 # Release Publisher to run.
 
-# Don't add exiting on "$TRAVIS_TEST_RESULT" == "0" in here as some of the
+# Don't add exiting on "$TRAVIS_TEST_RESULT" != "0" in here as some of the
 # scripts have to run even if the job has failed. The scripts that should not
 # run on a job failing already include such a check and exit on their own.
 
