@@ -96,8 +96,8 @@ class Travis:
             json = response.json()
             offset += json['@pagination']['limit']
             count = json['@pagination']['count']
-            # We filter by repository slug too because there might be builds of PRs from forks with the same branch name as ours, we don't want to include those
-            branch_builds = [build for build in json['builds'] if build['branch']['name'] == branch_name and build['repository']['slug'] == repo_slug]
+            # We don't want to include PRs
+            branch_builds = [build for build in json['builds'] if build['event_type'] != 'pull_request']
             build_numbers.extend([build['number'] for build in branch_builds if build['finished_at'] == None])
             # If we find a finished build, then there is no point in looking any further as we sort
             # them by `finished_at` field -- there would be no unfinished builds any further.
