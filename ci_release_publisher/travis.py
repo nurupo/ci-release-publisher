@@ -60,8 +60,9 @@ class Travis:
             'sort_by': 'created_at:desc,id:desc',
             'event_type': event_type,
             'limit': 1,
+            'branch.name': _branch_name,
         }
-        response = requests_retry().get('{}/repo/{}/builds'.format(self._api_url, _repo_slug, _branch_name), headers=self._headers, params=params, timeout=config.timeout)
+        response = requests_retry().get('{}/repo/{}/builds'.format(self._api_url, _repo_slug), headers=self._headers, params=params, timeout=config.timeout)
         json = response.json()
         if json['@pagination']['count'] > 0:
             return json['builds'][0]['number']
@@ -88,9 +89,10 @@ class Travis:
                 'sort_by': 'finished_at:desc',
                 'offset': offset,
                 'limit': limit,
+                'branch.name': _branch_name,
             }
             # API doc: https://developer.travis-ci.com/resource/builds
-            response = requests_retry().get('{}/repo/{}/builds'.format(self._api_url, _repo_slug, _branch_name), headers=self._headers, params=params, timeout=config.timeout)
+            response = requests_retry().get('{}/repo/{}/builds'.format(self._api_url, _repo_slug), headers=self._headers, params=params, timeout=config.timeout)
             json = response.json()
             offset += json['@pagination']['limit']
             count = json['@pagination']['count']
