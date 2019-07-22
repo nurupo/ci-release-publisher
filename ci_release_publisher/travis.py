@@ -48,6 +48,8 @@ class Travis:
         if len(event_types) == 0:
             event_types=[EventType.ANY]
         if Travis.EventType.ANY in event_types:
+            # We use a different API endpoint here because it gives the last non-PR build number, which is exactly what we want.
+            # If we used the 'builds' endpoint, Travis would include PRs into it.
             # API doc: https://developer.travis-ci.com/resource/branch
             response = requests_retry().get('{}/repo/{}/branch/{}'.format(self._api_url, _repo_slug, _branch_name), headers=self._headers, timeout=config.timeout)
             return response.json()['last_build']['number']
