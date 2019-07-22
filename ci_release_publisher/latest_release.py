@@ -5,6 +5,7 @@ import logging
 import re
 
 from . import config
+from . import enum
 from . import env
 from . import github
 from . import travis
@@ -41,6 +42,8 @@ def publish_args(parser):
     parser.add_argument('--latest-release-prerelease', default=False, action='store_true', help='Publish as a prerelease.')
     parser.add_argument('--latest-release-target-commitish', type=str,
                         help='Commit the release should point to. By default it\'s set to $TRAVIS_COMMIT when publishing to the same repo and not set when publishing to a different repo.')
+    parser.add_argument('--latest-release-check-event-type', default=['any'], nargs='+', type=str, choices=enum.enum_to_arg_choices(travis.Travis.EventType),
+                        help='Consider only builds of specific event types when checking if the current build is the latest.')
 
 def publish_validate_args(args):
     return args.latest_release
@@ -48,9 +51,10 @@ def publish_validate_args(args):
 def publish_with_args(args, releases, artifact_dir, github_api_url, travis_api_url):
     if not args.latest_release:
         return
-    publish(releases, artifact_dir, args.latest_release_name, args.latest_release_body, args.latest_release_draft, args.latest_release_prerelease, args.latest_release_target_commitish, github_api_url, travis_api_url)
+    publish(releases, artifact_dir, args.latest_release_name, args.latest_release_body, args.latest_release_draft, args.latest_release_prerelease, args.latest_release_target_commitish,
+            enum.arg_choices_to_enum(travis.Travis.EventType, args.latest_release_check_event_type), github_api_url, travis_api_url)
 
-def publish(releases, artifact_dir, latest_release_name, latest_release_body, latest_release_draft, latest_release_prerelease, latest_release_target_commitish, github_api_url, travis_api_url):
+def publish(releases, artifact_dir, latest_release_name, latest_release_body, latest_release_draft, latest_release_prerelease, latest_release_target_commitish, latest_release_check_event_type, github_api_url, travis_api_url):
     github_token         = env.required('CIRP_GITHUB_ACCESS_TOKEN') if env.optional('CIRP_GITHUB_ACCESS_TOKEN') else env.required('GITHUB_ACCESS_TOKEN')
     github_repo_slug     = env.required('CIRP_GITHUB_REPO_SLUG') if env.optional('CIRP_GITHUB_REPO_SLUG') else env.required('TRAVIS_REPO_SLUG')
     travis_repo_slug     = env.required('TRAVIS_REPO_SLUG')
@@ -67,7 +71,7 @@ def publish(releases, artifact_dir, latest_release_name, latest_release_body, la
     logging.info('* Creating a latest release with the tag name "{}".'.format(tag_name))
 
     def _is_latest_build_for_branch():
-        if int(travis.Travis.github_auth(github_token, travis_api_url).branch_last_build_number(travis_repo_slug, travis_branch)) == int(travis_build_number):
+        if int(travis.Travis.github_auth(github_token, travis_api_url).branch_last_build_number(travis_repo_slug, travis_branch, latest_release_check_event_type)) == int(travis_build_number):
             return True
         logging.info('Not creating the "{}" release because this is not the latest build for "{}" branch.'.format(tag_name, travis_branch))
         return False

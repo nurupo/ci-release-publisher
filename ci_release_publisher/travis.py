@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+from enum import Enum, unique
 import requests
 
 from . import config
@@ -33,13 +34,39 @@ class Travis:
         response = requests_retry().post('{}/auth/github'.format(travis_api_url), headers=headers, params={'github_token': github_token}, timeout=config.timeout)
         return Travis(response.json()['access_token'], travis_api_url)
 
+    @unique
+    class EventType(Enum):
+        ANY = 1
+        API = 2
+        CRON = 3
+        PULL_REQUEST = 4
+        PUSH = 5
+
     # Returns last build number for a branch
-    def branch_last_build_number(self, repo_slug, branch_name):
+    def branch_last_build_number(self, repo_slug, branch_name, event_types=[EventType.ANY]):
         _repo_slug = requests.utils.quote(repo_slug, safe='')
         _branch_name = requests.utils.quote(branch_name, safe='')
-        # API doc: https://developer.travis-ci.com/resource/branch
-        response = requests_retry().get('{}/repo/{}/branch/{}'.format(self._api_url, _repo_slug, _branch_name), headers=self._headers, timeout=config.timeout)
-        return response.json()['last_build']['number']
+        if len(event_types) == 0:
+            event_types=[EventType.ANY]
+        if Travis.EventType.ANY in event_types:
+            # API doc: https://developer.travis-ci.com/resource/branch
+            response = requests_retry().get('{}/repo/{}/branch/{}'.format(self._api_url, _repo_slug, _branch_name), headers=self._headers, timeout=config.timeout)
+            return response.json()['last_build']['number']
+        event_type = ''
+        for event in event_types:
+            event_type += '{},'.format(event.name.lower())
+        event_type = event_type[:-1]
+        params = {
+            'sort_by': 'created_at:desc,id:desc',
+            'event_type': event_type,
+            'limit': 1,
+        }
+        response = requests_retry().get('{}/repo/{}/builds'.format(self._api_url, _repo_slug, _branch_name), headers=self._headers, params=params, timeout=config.timeout)
+        json = response.json()
+        if json['@pagination']['count'] > 0:
+            return json['builds'][0]['number']
+        else:
+            return 0
 
     # Returns a list of build numbers of all builds that have not finished for a branch.
     # "not finished" basically means that a build is active (queued/running). it could be a restarted build too.

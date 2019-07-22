@@ -6,6 +6,7 @@ import logging
 import re
 
 from . import config
+from . import enum
 from . import env
 from . import github
 from . import travis
@@ -82,21 +83,15 @@ class CleanupRelease(Enum):
     COMPLETE = 1
     INCOMPLETE = 2
 
-def _enum_to_choices(enum_calss):
-    return [e.name.lower().replace('_', '-') for e in enum_calss]
-
-def _choices_to_enum(enum_calss, choices):
-    return [enum_calss[s.upper().replace('-', '_')] for s in choices]
-
 def cleanup_args(parser):
-    parser.add_argument('--scope', nargs='+', type=str, choices=_enum_to_choices(CleanupScope), required=True, help="Scope to cleanup.")
-    parser.add_argument('--release', nargs='+', type=str, choices=_enum_to_choices(CleanupRelease), required=True, help="Release to cleanup.")
+    parser.add_argument('--scope', nargs='+', type=str, choices=enum.enum_to_arg_choices(CleanupScope), required=True, help="Scope to cleanup.")
+    parser.add_argument('--release', nargs='+', type=str, choices=enum.enum_to_arg_choices(CleanupRelease), required=True, help="Release to cleanup.")
     parser.add_argument('--on-nonallowed-failure', default=False, action='store_true',
                         help='Cleanup only if the current build has a job that both has failed and doesn\'t have allow_failure set on it, '
                              'i.e. the current build is going to fail once the current stage finishes running.')
 
 def cleanup_with_args(args, releases, github_api_url, travis_api_url):
-    cleanup(releases, _choices_to_enum(CleanupScope, args.scope), _choices_to_enum(CleanupRelease, args.release),
+    cleanup(releases, enum.arg_choices_to_enum(CleanupScope, args.scope), enum.arg_choices_to_enum(CleanupRelease, args.release),
             args.on_nonallowed_failure, args.github_api_url, travis_api_url)
 
 def cleanup(releases, scopes, release_completenesses, on_nonallowed_failure, github_api_url, travis_api_url):
