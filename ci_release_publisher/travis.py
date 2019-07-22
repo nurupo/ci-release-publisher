@@ -39,8 +39,7 @@ class Travis:
         ANY = 1
         API = 2
         CRON = 3
-        PULL_REQUEST = 4
-        PUSH = 5
+        PUSH = 4
 
     # Returns last build number for a branch
     def branch_last_build_number(self, repo_slug, branch_name, event_types=[EventType.ANY]):
