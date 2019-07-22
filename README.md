@@ -202,6 +202,8 @@ pip install --no-index --find-links "$PWD" ci_release_publisher-*
 
 Of course that won't verify any of the dependencies CI Release Publisher is using.
 
+Due to keyservers sometimes failing to reply with a key, it's suggested to verify signatures locally and rely on the hash when running on Travis-CI. This is what [`scripts/install.sh`](scripts/install.sh) is set to do (verifying the hash).
+
 ## Usage
 
 ### Security consideration
@@ -481,13 +483,14 @@ Here is a table summarizing the three ways to make releases:
     ...
     ```
 
-    `.travis/cirp/*.sh` are helper scripts that you can find in the `scripts` directory.
+    `.travis/cirp/*.sh` are helper scripts that you can find in the [`scripts`](scripts) directory.
 
 9. General dos and don'ts.
 
     Dos:
-    - Do use `.travis/cirp/*.sh` helper scripts, they check for some important preconditions to be met before installing all of CI Release Publisher's dependencies and calling it.
+    - Do use [`.travis/cirp/*.sh`](scripts) helper scripts, they check for some important preconditions to be met before installing all of CI Release Publisher's dependencies and calling it.
     - Do modify `publish.sh` script to call the `publish` command with the arguments you want.
+    - Do set an appropriate `--latest-release-check-event-type` argument in the `publish` command if you are creating Latest Release and use multiple build types: push, cron, api, etc., but run CI Release Publisher only on a subset of them.
     - Do run things between the `collect.sh` and `publish.sh` calls. For example calculate hashes of the artifacts and include them as a file in the artifacts directory for `publish.sh` to upload, or modify `publish.sh` to calculate the hashes and pass them as the release body text argument, or generate a changelog and set it as the release body text.
     - Do modify `store.sh` script to call the `store` command with the arguments you want.
     - Do modify `install.sh` for your needs.
@@ -733,6 +736,7 @@ Note that CI Release Publisher uses `$TRAVIS_` environment variables to know whi
                                       [--latest-release-draft]
                                       [--latest-release-prerelease]
                                       [--latest-release-target-commitish LATEST_RELEASE_TARGET_COMMITISH]
+                                      [--latest-release-check-event-type {any,api,cron,push} [{any,api,cron,push} ...]]
                                       [--numbered-release]
                                       [--numbered-release-keep-count NUMBERED_RELEASE_KEEP_COUNT]
                                       [--numbered-release-keep-time NUMBERED_RELEASE_KEEP_TIME]
@@ -773,6 +777,9 @@ Note that CI Release Publisher uses `$TRAVIS_` environment variables to know whi
                           Commit the release should point to. By default it's
                           set to $TRAVIS_COMMIT when publishing to the same repo
                           and not set when publishing to a different repo.
+    --latest-release-check-event-type {any,api,cron,push} [{any,api,cron,push} ...]
+                          Consider only builds of specific event types when
+                          checking if the current build is the latest.
     --numbered-release    Publish a numbered release. A separate
                           "ci-<branch>-<build_number>" release will be made for
                           each build. You must specify at least one of
