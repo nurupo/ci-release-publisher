@@ -43,7 +43,7 @@ def publish_args(parser):
     parser.add_argument('--latest-release-target-commitish', type=str,
                         help='Commit the release should point to. By default it\'s set to $TRAVIS_COMMIT when publishing to the same repo and not set when publishing to a different repo.')
     parser.add_argument('--latest-release-check-event-type', default=['any'], nargs='+', type=str, choices=enum.enum_to_arg_choices(travis.Travis.EventType),
-                        help='Consider only builds of specific event types when checking if the current build is the latest.')
+                        help='Consider only builds of specific event types when checking if the current build is the latest. If not specified, "any" is used.')
 
 def publish_validate_args(args):
     return args.latest_release
