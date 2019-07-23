@@ -53,13 +53,9 @@ class Travis:
             # API doc: https://developer.travis-ci.com/resource/branch
             response = requests_retry().get('{}/repo/{}/branch/{}'.format(self._api_url, _repo_slug, _branch_name), headers=self._headers, timeout=config.timeout)
             return response.json()['last_build']['number']
-        event_type = ''
-        for event in event_types:
-            event_type += '{},'.format(event.name.lower())
-        event_type = event_type[:-1]
         params = {
             'sort_by': 'created_at:desc,id:desc',
-            'event_type': event_type,
+            'event_type': ','.join([e.name.lower() for e in event_types]),
             'limit': 1,
             'branch.name': _branch_name,
         }
