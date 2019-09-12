@@ -46,7 +46,7 @@ class Travis:
         _repo_slug = requests.utils.quote(repo_slug, safe='')
         _branch_name = requests.utils.quote(branch_name, safe='')
         if len(event_types) == 0:
-            event_types=[EventType.ANY]
+            event_types=[Travis.EventType.ANY]
         if Travis.EventType.ANY in event_types:
             # We use a different API endpoint here because it gives the last non-PR build number, which is exactly what we want.
             # If we used the 'builds' endpoint, Travis would include PRs into it.
@@ -63,8 +63,7 @@ class Travis:
         json = response.json()
         if json['@pagination']['count'] > 0:
             return json['builds'][0]['number']
-        else:
-            return 0
+        return 0
 
     # Returns a list of build numbers of all builds that have not finished for a branch.
     # "not finished" basically means that a build is active (queued/running). it could be a restarted build too.
@@ -95,10 +94,10 @@ class Travis:
             count = json['@pagination']['count']
             # We don't want to include PRs
             branch_builds = [build for build in json['builds'] if build['event_type'] != 'pull_request']
-            build_numbers.extend([build['number'] for build in branch_builds if build['finished_at'] == None])
+            build_numbers.extend([build['number'] for build in branch_builds if build['finished_at'] is None])
             # If we find a finished build, then there is no point in looking any further as we sort
             # them by `finished_at` field -- there would be no unfinished builds any further.
-            if any(build['finished_at'] != None for build in branch_builds):
+            if any(build['finished_at'] is not None for build in branch_builds):
                 break
         return build_numbers
 

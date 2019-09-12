@@ -2,7 +2,6 @@
 
 from github import GithubObject
 import logging
-import re
 
 from . import config
 from . import env
