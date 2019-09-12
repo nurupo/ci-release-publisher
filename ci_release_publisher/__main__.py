@@ -84,6 +84,7 @@ def main():
 
             github_token     = env.required('CIRP_GITHUB_ACCESS_TOKEN') if env.optional('CIRP_GITHUB_ACCESS_TOKEN') else env.required('GITHUB_ACCESS_TOKEN')
             github_repo_slug = env.required('CIRP_GITHUB_REPO_SLUG') if env.optional('CIRP_GITHUB_REPO_SLUG') else env.required('TRAVIS_REPO_SLUG')
+            travis_token     = env.optional('CIRP_TRAVIS_ACCESS_TOKEN')
 
             if args.command == 'store':
                 if not os.path.isdir(args.artifact_dir):
@@ -112,7 +113,7 @@ def main():
                     r.publish_with_args(args, releases, args.artifact_dir, args.github_api_url, args.travis_api_url)
             elif args.command == 'cleanup_publish':
                 releases = github.github(github_token, args.github_api_url).get_repo(github_repo_slug).get_releases()
-                branch_unfinished_build_numbers = travis.Travis.github_auth(github_token, args.travis_api_url).branch_unfinished_build_numbers(env.required('TRAVIS_REPO_SLUG'), env.required('TRAVIS_BRANCH'))
+                branch_unfinished_build_numbers = travis.Travis(args.travis_api_url, travis_token, github_token).branch_unfinished_build_numbers(env.required('TRAVIS_REPO_SLUG'), env.required('TRAVIS_BRANCH'))
                 for r in release_kinds:
                     r.cleanup(releases, branch_unfinished_build_numbers, args.github_api_url)
             else:

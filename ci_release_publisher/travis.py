@@ -15,12 +15,15 @@ class Travis:
         'User-Agent': config.user_agent,
     }
 
-    def __init__(self, travis_token, travis_api_url):
+    def __init__(self, travis_api_url, travis_token=None, github_token=None):
         self._api_url = travis_api_url
-        self._headers['Authorization'] = 'token {}'.format(travis_token)
+        if travis_token or github_token:
+            self._headers['Authorization'] = 'token {}'.format(travis_token if travis_token else Travis._github_token_to_travis_token(github_token, travis_api_url))
+        else:
+            raise ValueError('Either travis_token or github_token must be provided')
 
     @classmethod
-    def github_auth(cls, github_token, travis_api_url):
+    def _github_token_to_travis_token(cls, github_token, travis_api_url):
         # We have to use API 2.1 to get Travis-CI token based on GitHub token.
         # See https://github.com/travis-ci/travis-ci/issues/9273.
         # API 2.1 is supposedly getting deprecated sometime in 2018, so hopefully a similar endpoint
@@ -32,7 +35,7 @@ class Travis:
         }
         # API doc: https://docs.travis-ci.com/api/?http#with-a-github-token
         response = requests_retry().post('{}/auth/github'.format(travis_api_url), headers=headers, params={'github_token': github_token}, timeout=config.timeout)
-        return Travis(response.json()['access_token'], travis_api_url)
+        return response.json()['access_token']
 
     @unique
     class EventType(Enum):

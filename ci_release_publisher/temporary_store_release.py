@@ -104,6 +104,7 @@ def cleanup(releases, scopes, release_completenesses, on_nonallowed_failure, git
     travis_job_number    = env.required('TRAVIS_JOB_NUMBER').split('.')[1]
     travis_test_result   = env.optional('TRAVIS_TEST_RESULT')
     travis_allow_failure = env.optional('TRAVIS_ALLOW_FAILURE')
+    travis_token         = env.optional('CIRP_TRAVIS_ACCESS_TOKEN')
 
     logging.info('* Deleting temporary store releases.')
 
@@ -114,13 +115,13 @@ def cleanup(releases, scopes, release_completenesses, on_nonallowed_failure, git
         has_nonallowed_failure = travis_test_result == '1' and travis_allow_failure == 'false'
         if not has_nonallowed_failure:
             # Alright, now check the API for other complete jobs
-            has_nonallowed_failure = travis.Travis.github_auth(github_token, travis_api_url).build_has_failed_nonallowfailure_job(travis_build_id)
+            has_nonallowed_failure = travis.Travis(travis_api_url, travis_token, github_token).build_has_failed_nonallowfailure_job(travis_build_id)
         if not has_nonallowed_failure:
             return
 
     branch_unfinished_build_numbers = []
     if CleanupScope.PREVIOUS_FINISHED_BUILDS in scopes:
-        branch_unfinished_build_numbers = travis.Travis.github_auth(github_token, travis_api_url).branch_unfinished_build_numbers(travis_repo_slug, travis_branch)
+        branch_unfinished_build_numbers = travis.Travis(travis_api_url, travis_token, github_token).branch_unfinished_build_numbers(travis_repo_slug, travis_branch)
 
     def should_delete(r):
         if not r.draft:

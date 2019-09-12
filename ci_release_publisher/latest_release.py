@@ -64,6 +64,7 @@ def publish(releases, artifact_dir, latest_release_name, latest_release_body, la
     travis_build_id      = env.required('TRAVIS_BUILD_ID')
     travis_build_web_url = env.required('TRAVIS_BUILD_WEB_URL')
     travis_tag           = env.optional('TRAVIS_TAG')
+    travis_token         = env.optional('CIRP_TRAVIS_ACCESS_TOKEN')
 
     if travis_tag:
         return
@@ -71,7 +72,7 @@ def publish(releases, artifact_dir, latest_release_name, latest_release_body, la
     logging.info('* Creating a latest release with the tag name "{}".'.format(tag_name))
 
     def _is_latest_build_for_branch():
-        if int(travis.Travis.github_auth(github_token, travis_api_url).branch_last_build_number(travis_repo_slug, travis_branch, latest_release_check_event_type)) == int(travis_build_number):
+        if int(travis.Travis(travis_api_url, travis_token, github_token).branch_last_build_number(travis_repo_slug, travis_branch, latest_release_check_event_type)) == int(travis_build_number):
             return True
         logging.info('Not creating the "{}" release because this is not the latest build for "{}" branch with event type(s): {}.'.format(tag_name, travis_branch, ','.join([e.name.lower() for e in latest_release_check_event_type])))
         return False

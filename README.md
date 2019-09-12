@@ -854,7 +854,7 @@ Note that CI Release Publisher uses `$TRAVIS_` environment variables to know whi
 
 ## Troubleshooting
 
-In order to prevent GitHub access token from being leaked, CI Release Publisher catches all exceptions and prints out only the exception type and message, avoiding printing out the stack trace, as the access token is often passed as a function argument and might show up in the stack trace. Although a good security measure, it also means that you don't know where exactly in the code exceptions are coming from. Luckily there are just a few common exceptions that happen when using CI Release Publisher incorrectly, most of which have to do with using the wrong API endpoint for either GitHub or Travis-CI, incorrect GitHub access token or an access token with insufficient permissions set. This section tries to document those exceptions based on just exception type and message.
+In order to prevent GitHub access token from being leaked, CI Release Publisher catches all exceptions and prints out only the exception type and message, avoiding printing out the stack trace, as the access token is often passed as a function argument and might show up in the stack trace. Travis-CI does replace environment variable values with `[secure]` in its logs, so it's mostly a precaution in case Python prints them encoded one way or another. Although a good security measure, it also means that you don't know where exactly in the code exceptions are coming from. Luckily there are just a few common exceptions that happen when using CI Release Publisher incorrectly, most of which have to do with using the wrong API endpoint for either GitHub or Travis-CI, incorrect GitHub access token or an access token with insufficient permissions set. This section tries to document those exceptions based on just exception type and message.
 
 ### `JSONDecodeError`
 
@@ -875,7 +875,17 @@ curl -v -X POST \
 'https://api.travis-ci.org/auth/github'
 ```
 
-You want to see a 2xx HTTP code and a Travis-CI access token as a payload in the reply. Again, run this locally, don't run it on Travis-CI as it might reveal `$GITHUB_ACCESS_TOKEN` and it will reveal your Travis-CI access token on success.
+You want to see a 2xx HTTP code and a Travis-CI access token as a payload in the reply. Again, run this curl command locally, don't run it on Travis-CI as it might reveal `$GITHUB_ACCESS_TOKEN` and it will reveal your Travis-CI access token on success.
+
+### `RetryError`
+
+If you are getting:
+
+```
+RetryError: HTTPSConnectionPool(host='api.travis-ci.com', port=443): Max retries exceeded with url: /auth/github?github_token=[secure] (Caused by ResponseError('too many 403 error responses'))
+```
+
+it's likely that Travis-CI can't authenticate CI Release Publisher using the GitHub access token provided due to GitHub rate limiting Travis-CI. A workaround is to set `CIRP_TRAVIS_ACCESS_TOKEN` environment variable to the [new GitHub user's Travis-CI API token](https://travis-ci.org/account/preferences), then CI Release Publisher will avoid calling this problematic API endpoint altogether.
 
 ### `BadCredentialsException`
 
