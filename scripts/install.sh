@@ -1,12 +1,13 @@
 # Install verifying the hash
 
-# Verifying PGP signture on CI is error-prone, keyservers often fail to return
+# Verifying PGP signature on CI is error-prone, keyservers often fail to return
 # the key and even if they do, `gpg --verify` returns success with a revoked
 # or expired key. Thus it's probably better to verify the signature yourself,
 # on your local machine, and then rely on the hash on the CI.
 
 # Set the variables below for the version of ci_release_publisher you would like
-# to use. The set values are provided as an example.
+# to use. The set values are provided as an example and are likely very out of
+# date.
 #VERSION="0.1.0rc1"
 #FILENAME="ci_release_publisher-$VERSION-py3-none-any.whl"
 #HASH="5a7f0ad6ccfb6017974db42fb1ecfe8b3f9cc1c16ac68107a94979252baa16e3"
@@ -39,7 +40,9 @@ elif [ "$TRAVIS_OS_NAME" == "linux" ]; then
   python3 --version || true
   pyenv versions || true
 
-  pyenv global 3.6
+  # Install Python >=3.5 that has a non-zero patch version
+  # (we assume the zero patch versions to be potentially buggier than desired)
+  pyenv global $(pyenv versions | grep -o ' 3\.[5-99]\.[1-99]' | tail -n1
 fi
 
 pip install --upgrade pip
