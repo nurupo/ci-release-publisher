@@ -21,6 +21,7 @@ Mainly geared towards publishing nightly/continuous builds, which Travis-CI has 
   - [Doing everything in a different repository](#doing-everything-in-a-different-repository)
 - [Command line arguments](#command-line-arguments)
 - [Troubleshooting](#troubleshooting)
+- [Projects using CI Release Publisher](#projects-using-ci-release-publisher)
 - [License](#license)
 
 ## Features
@@ -896,6 +897,15 @@ BadCredentialsException: 401 {'message': 'Bad credentials', 'documentation_url':
 ```
 
 then it means that the GitHub access token you provided doesn't have enough permissions to create releases in the target GitHub repository. Make sure you have invited the new user to the repository, the new user has accepted the invitation and they have been granted the full write access to it.
+
+## Projects using CI Release Publisher
+
+| Project                                                                    | Comment                                                                                                    |
+|----------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------|
+| [vlc-pause-click-plugin](https://github.com/nurupo/vlc-pause-click-plugin) | [Publishes to a different repo](https://github.com/nurupo/vlc-pause-click-plugin-nightly-builds/releases). |
+| [qTox](https://github.com/qTox/qTox)                                       | [Publishes to a different repo](https://github.com/qTox/qTox-nightly-releases/releases).                   |
+
+Feel free to open an issue requesting to add your project to the list.
 
 ## License
 
