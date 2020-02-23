@@ -19,7 +19,7 @@ Mainly geared towards publishing nightly/continuous builds, which Travis-CI has 
   - [Publishing to the same repository](#publishing-to-the-same-repository)
   - [Publishing to a different repository](#publishing-to-a-different-repository)
   - [Doing everything in a different repository](#doing-everything-in-a-different-repository)
-- [Command line arguments](#command-line-arguments)
+- [Options](#options)
 - [Troubleshooting](#troubleshooting)
 - [Projects using CI Release Publisher](#projects-using-ci-release-publisher)
 - [License](#license)
@@ -605,253 +605,229 @@ The idea here is to setup a Travis-CI cron build in a different repository to ru
 7. After you push, make sure the build gets created on Travis-CI, that it succeeds, that in turn it creates yet another build which succeeds and creates releases.
 8. Go to the Settings page of your repository on Travis-CI, e.g. https://travis-ci.org/nurupo/ci-release-publisher/settings, and under "Cron Jobs" set it to run a cron build of the branch you pushed the files to daily, weekly or monthly.
 
-## Command line arguments
+## Options
 
-It's often useful to know what options a program provides before installing it, so here are all of the available command line arguments.
+It's often useful to know what options a program provides before installing it, so here are options for the available commands.
 
 Note that CI Release Publisher uses `$TRAVIS_` environment variables to know which branch it's running on, whether a tag was pushed and so on, so you won't see command line arguments on specifying things CI Release Publisher can already get from the `$TRAVIS_` environment variables.
+It also uses `$CIRP_` environment variables for API tokens and some other options.
 
-<details>
-  <summary>ci-release-publisher --version</summary>
+```
+$ ci-release-publisher --help
+usage: ci-release-publisher [-h] [--version] [--travis-api-url TRAVIS_API_URL]
+                            [--github-api-url GITHUB_API_URL]
+                            [--tag-prefix TAG_PREFIX]
+                            [--tag-prefix-incomplete-releases TAG_PREFIX_TMP]
+                            {store,cleanup_store,collect,publish,cleanup_publish}
+                            ...
 
-  ```
-  0.2.0a4
-  ```
-</details>
+A script for publishing Travis-CI build artifacts on GitHub Releases
 
-<details>
-  <summary>ci-release-publisher --help</summary>
+positional arguments:
+  {store,cleanup_store,collect,publish,cleanup_publish}
+    store               Store artifacts of the current job in a draft release
+                        for the later collection by a job calling the
+                        "publish" command.
+    cleanup_store       Delete the releases created by the "store" command.
+    collect             Collect artifacts from all draft releases created by
+                        the "store" command during the current build in a
+                        directory.
+    publish             Publish releases with artifacts from a directory.
+    cleanup_publish     Delete incomplete releases left over by the "publish"
+                        command by the current and previous builds.
 
-  ```
-  usage: ci-release-publisher [-h] [--version] [--travis-api-url TRAVIS_API_URL]
-                              [--github-api-url GITHUB_API_URL]
-                              [--tag-prefix TAG_PREFIX]
-                              [--tag-prefix-incomplete-releases TAG_PREFIX_TMP]
-                              {store,cleanup_store,collect,publish,cleanup_publish}
-                              ...
+optional arguments:
+  -h, --help            show this help message and exit
+  --version             show program's version number and exit
+  --travis-api-url TRAVIS_API_URL
+                        Use a custom Travis-CI API URL, e.g. for self-hosted
+                        Travis-CI Enterprise instance. Should be an URL to the
+                        API endpoint, e.g. "https://travis.example.com/api".
+  --github-api-url GITHUB_API_URL
+                        Use a custom GitHib API URL, e.g. for self-hosted
+                        GitHub Enterprise instance. Should be an URL to the
+                        API endpoint, e.g. "https://api.github.com".
+  --tag-prefix TAG_PREFIX
+                        git tag prefix to use when creating releases.
+  --tag-prefix-incomplete-releases TAG_PREFIX_TMP
+                        An additional git tag prefix, on top of the existing
+                        one, to use for indicating incomplete, in-progress
+                        releases.
+```
 
-  A script for publishing Travis-CI build artifacts on GitHub Releases
+```
+$ ci-release-publisher store --help
+usage: ci-release-publisher store [-h] [--release-name RELEASE_NAME]
+                                  [--release-body RELEASE_BODY]
+                                  ARTIFACT_DIR
 
-  positional arguments:
-    {store,cleanup_store,collect,publish,cleanup_publish}
-      store               Store artifacts of the current job in a draft release
-                          for the later collection by a job calling the
-                          "publish" command.
-      cleanup_store       Delete the releases created by the "store" command.
-      collect             Collect artifacts from all draft releases created by
-                          the "store" command during the current build in a
-                          directory.
-      publish             Publish releases with artifacts from a directory.
-      cleanup_publish     Delete incomplete releases left over by the "publish"
-                          command by the current and previous builds.
+positional arguments:
+  ARTIFACT_DIR          Path to a directory containing artifacts that need to
+                        be stored.
 
-  optional arguments:
-    -h, --help            show this help message and exit
-    --version             show program's version number and exit
-    --travis-api-url TRAVIS_API_URL
-                          Use a custom Travis-CI API URL, e.g. for self-hosted
-                          Travis-CI Enterprise instance. Should be an URL to the
-                          API endpoint, e.g. "https://travis.example.com/api".
-    --github-api-url GITHUB_API_URL
-                          Use a custom GitHib API URL, e.g. for self-hosted
-                          GitHub Enterprise instance. Should be an URL to the
-                          API endpoint, e.g. "https://api.github.com".
-    --tag-prefix TAG_PREFIX
-                          git tag prefix to use when creating releases.
-    --tag-prefix-incomplete-releases TAG_PREFIX_TMP
-                          An additional git tag prefix, on top of the existing
-                          one, to use for indicating incomplete, in-progress
-                          releases.
-  ```
-</details>
+optional arguments:
+  -h, --help            show this help message and exit
+  --release-name RELEASE_NAME
+                        Release name text. If not specified a predefined text
+                        is used.
+  --release-body RELEASE_BODY
+                        Release body text. If not specified a predefined text
+                        is used.
+```
 
-<details>
-  <summary>ci-release-publisher store --help</summary>
+```
+$ ci-release-publisher cleanup_store --help
+usage: ci-release-publisher cleanup_store [-h] --scope
+                                          {current-job,current-build,previous-finished-builds}
+                                          [{current-job,current-build,previous-finished-builds} ...]
+                                          --release {complete,incomplete}
+                                          [{complete,incomplete} ...]
+                                          [--on-nonallowed-failure]
 
-  ```
-  usage: ci-release-publisher store [-h] [--release-name RELEASE_NAME]
-                                    [--release-body RELEASE_BODY]
+optional arguments:
+  -h, --help            show this help message and exit
+  --scope {current-job,current-build,previous-finished-builds} [{current-job,current-build,previous-finished-builds} ...]
+                        Scope to cleanup.
+  --release {complete,incomplete} [{complete,incomplete} ...]
+                        Release to cleanup.
+  --on-nonallowed-failure
+                        Cleanup only if the current build has a job that both
+                        has failed and doesn't have allow_failure set on it,
+                        i.e. the current build is going to fail once the
+                        current stage finishes running.
+```
+
+```
+$ ci-release-publisher collect --help
+usage: ci-release-publisher collect [-h] ARTIFACT_DIR
+
+positional arguments:
+  ARTIFACT_DIR  Path to a directory where artifacts should be collected to.
+
+optional arguments:
+  -h, --help    show this help message and exit
+```
+
+```
+$ ci-release-publisher publish --help
+usage: ci-release-publisher publish [-h] [--latest-release]
+                                    [--latest-release-name LATEST_RELEASE_NAME]
+                                    [--latest-release-body LATEST_RELEASE_BODY]
+                                    [--latest-release-draft]
+                                    [--latest-release-prerelease]
+                                    [--latest-release-target-commitish LATEST_RELEASE_TARGET_COMMITISH]
+                                    [--latest-release-check-event-type {any,api,cron,push} [{any,api,cron,push} ...]]
+                                    [--numbered-release]
+                                    [--numbered-release-keep-count NUMBERED_RELEASE_KEEP_COUNT]
+                                    [--numbered-release-keep-time NUMBERED_RELEASE_KEEP_TIME]
+                                    [--numbered-release-name NUMBERED_RELEASE_NAME]
+                                    [--numbered-release-body NUMBERED_RELEASE_BODY]
+                                    [--numbered-release-draft]
+                                    [--numbered-release-prerelease]
+                                    [--numbered-release-target-commitish NUMBERED_RELEASE_TARGET_COMMITISH]
+                                    [--tag-release]
+                                    [--tag-release-name TAG_RELEASE_NAME]
+                                    [--tag-release-body TAG_RELEASE_BODY]
+                                    [--tag-release-draft]
+                                    [--tag-release-prerelease]
+                                    [--tag-release-target-commitish TAG_RELEASE_TARGET_COMMITISH]
+                                    [--tag-release-force-recreate]
                                     ARTIFACT_DIR
 
-  positional arguments:
-    ARTIFACT_DIR          Path to a directory containing artifacts that need to
-                          be stored.
+positional arguments:
+  ARTIFACT_DIR          Path to a directory containing build artifacts to
+                        publish.
 
-  optional arguments:
-    -h, --help            show this help message and exit
-    --release-name RELEASE_NAME
-                          Release name text. If not specified a predefined text
-                          is used.
-    --release-body RELEASE_BODY
-                          Release body text. If not specified a predefined text
-                          is used.
-  ```
-</details>
+optional arguments:
+  -h, --help            show this help message and exit
+  --latest-release      Publish latest release. The same "ci-<branch>-latest"
+                        tag release will be re-used (re-created) by each
+                        build.
+  --latest-release-name LATEST_RELEASE_NAME
+                        Release name text. If not specified a predefined text
+                        is used.
+  --latest-release-body LATEST_RELEASE_BODY
+                        Release body text. If not specified a predefined text
+                        is used.
+  --latest-release-draft
+                        Publish as a draft.
+  --latest-release-prerelease
+                        Publish as a prerelease.
+  --latest-release-target-commitish LATEST_RELEASE_TARGET_COMMITISH
+                        Commit the release should point to. By default it's
+                        set to $TRAVIS_COMMIT when publishing to the same repo
+                        and not set when publishing to a different repo.
+  --latest-release-check-event-type {any,api,cron,push} [{any,api,cron,push} ...]
+                        Consider only builds of specific event types when
+                        checking if the current build is the latest. If not
+                        specified, "any" is used.
+  --numbered-release    Publish a numbered release. A separate
+                        "ci-<branch>-<build_number>" release will be made for
+                        each build. You must specify at least one of
+                        --numbered-release-keep-* arguments specifying the
+                        strategy for keeping numbered builds.
+  --numbered-release-keep-count NUMBERED_RELEASE_KEEP_COUNT
+                        Number of numbered releases to keep. If set to 0, this
+                        check is disabled, otherwise if the number of numbered
+                        releases exceeds that number, the oldest numbered
+                        release will be deleted. Note that due to a race
+                        condition of several Travis-CI builds running at the
+                        same time, although unlikely, it's possible for the
+                        number of kept numbered releases to exceed that number
+                        by the number of concurrent Travis-CI builds running.
+  --numbered-release-keep-time NUMBERED_RELEASE_KEEP_TIME
+                        How long to keep the numbered releases for, in
+                        seconds. If set to 0, this check is disabled,
+                        otherwise all numbered releases that are older than
+                        the specified amount of seconds will be deleted.
+  --numbered-release-name NUMBERED_RELEASE_NAME
+                        Release name text. If not specified a predefined text
+                        is used.
+  --numbered-release-body NUMBERED_RELEASE_BODY
+                        Release body text. If not specified a predefined text
+                        is used.
+  --numbered-release-draft
+                        Publish as a draft.
+  --numbered-release-prerelease
+                        Publish as a prerelease.
+  --numbered-release-target-commitish NUMBERED_RELEASE_TARGET_COMMITISH
+                        Commit the release should point to. By default it's
+                        set to $TRAVIS_COMMIT when publishing to the same repo
+                        and not set when publishing to a different repo.
+  --tag-release         Publish a release for a pushed tag. A separate "<tag>"
+                        release will be made whenever a tag is pushed.
+  --tag-release-name TAG_RELEASE_NAME
+                        Release name text. If not specified a predefined text
+                        is used.
+  --tag-release-body TAG_RELEASE_BODY
+                        Release body text. If not specified a predefined text
+                        is used.
+  --tag-release-draft   Publish as a draft.
+  --tag-release-prerelease
+                        Publish as a prerelease.
+  --tag-release-target-commitish TAG_RELEASE_TARGET_COMMITISH
+                        Commit the release should point to. By default it's
+                        set to $TRAVIS_COMMIT when publishing to the same repo
+                        and not set when publishing to a different repo.
+  --tag-release-force-recreate
+                        Force recreation of the release if it already exists.
+                        DANGER. You almost never want to enable this option.
+                        When enabled, your existing tag release will be
+                        deleted, all of its text and artifacts will be forever
+                        lost, and a new tag release will be created based on
+                        this build. Note that by enabling this, someone might
+                        accidentally (or not) restart a tag release build on
+                        Travis-CI, causing the release to be recreated. You
+                        have been warned.
+```
 
-<details>
-  <summary>ci-release-publisher cleanup_store --help</summary>
+```
+$ ci-release-publisher cleanup_publish --help
+usage: ci-release-publisher cleanup_publish [-h]
 
-  ```
-  usage: ci-release-publisher cleanup_store [-h] --scope
-                                            {current-job,current-build,previous-finished-builds}
-                                            [{current-job,current-build,previous-finished-builds} ...]
-                                            --release {complete,incomplete}
-                                            [{complete,incomplete} ...]
-                                            [--on-nonallowed-failure]
-
-  optional arguments:
-    -h, --help            show this help message and exit
-    --scope {current-job,current-build,previous-finished-builds} [{current-job,current-build,previous-finished-builds} ...]
-                          Scope to cleanup.
-    --release {complete,incomplete} [{complete,incomplete} ...]
-                          Release to cleanup.
-    --on-nonallowed-failure
-                          Cleanup only if the current build has a job that both
-                          has failed and doesn't have allow_failure set on it,
-                          i.e. the current build is going to fail once the
-                          current stage finishes running.
-  ```
-</details>
-
-<details>
-  <summary>ci-release-publisher collect --help</summary>
-
-  ```
-  usage: ci-release-publisher collect [-h] ARTIFACT_DIR
-
-  positional arguments:
-    ARTIFACT_DIR  Path to a directory where artifacts should be collected to.
-
-  optional arguments:
-    -h, --help    show this help message and exit
-  ```
-</details>
-
-<details>
-  <summary>ci-release-publisher publish --help</summary>
-
-  ```
-  usage: ci-release-publisher publish [-h] [--latest-release]
-                                      [--latest-release-name LATEST_RELEASE_NAME]
-                                      [--latest-release-body LATEST_RELEASE_BODY]
-                                      [--latest-release-draft]
-                                      [--latest-release-prerelease]
-                                      [--latest-release-target-commitish LATEST_RELEASE_TARGET_COMMITISH]
-                                      [--latest-release-check-event-type {any,api,cron,push} [{any,api,cron,push} ...]]
-                                      [--numbered-release]
-                                      [--numbered-release-keep-count NUMBERED_RELEASE_KEEP_COUNT]
-                                      [--numbered-release-keep-time NUMBERED_RELEASE_KEEP_TIME]
-                                      [--numbered-release-name NUMBERED_RELEASE_NAME]
-                                      [--numbered-release-body NUMBERED_RELEASE_BODY]
-                                      [--numbered-release-draft]
-                                      [--numbered-release-prerelease]
-                                      [--numbered-release-target-commitish NUMBERED_RELEASE_TARGET_COMMITISH]
-                                      [--tag-release]
-                                      [--tag-release-name TAG_RELEASE_NAME]
-                                      [--tag-release-body TAG_RELEASE_BODY]
-                                      [--tag-release-draft]
-                                      [--tag-release-prerelease]
-                                      [--tag-release-target-commitish TAG_RELEASE_TARGET_COMMITISH]
-                                      [--tag-release-force-recreate]
-                                      ARTIFACT_DIR
-
-  positional arguments:
-    ARTIFACT_DIR          Path to a directory containing build artifacts to
-                          publish.
-
-  optional arguments:
-    -h, --help            show this help message and exit
-    --latest-release      Publish latest release. The same "ci-<branch>-latest"
-                          tag release will be re-used (re-created) by each
-                          build.
-    --latest-release-name LATEST_RELEASE_NAME
-                          Release name text. If not specified a predefined text
-                          is used.
-    --latest-release-body LATEST_RELEASE_BODY
-                          Release body text. If not specified a predefined text
-                          is used.
-    --latest-release-draft
-                          Publish as a draft.
-    --latest-release-prerelease
-                          Publish as a prerelease.
-    --latest-release-target-commitish LATEST_RELEASE_TARGET_COMMITISH
-                          Commit the release should point to. By default it's
-                          set to $TRAVIS_COMMIT when publishing to the same repo
-                          and not set when publishing to a different repo.
-    --latest-release-check-event-type {any,api,cron,push} [{any,api,cron,push} ...]
-                          Consider only builds of specific event types when
-                          checking if the current build is the latest.
-    --numbered-release    Publish a numbered release. A separate
-                          "ci-<branch>-<build_number>" release will be made for
-                          each build. You must specify at least one of
-                          --numbered-release-keep-* arguments specifying the
-                          strategy for keeping numbered builds.
-    --numbered-release-keep-count NUMBERED_RELEASE_KEEP_COUNT
-                          Number of numbered releases to keep. If set to 0, this
-                          check is disabled, otherwise if the number of numbered
-                          releases exceeds that number, the oldest numbered
-                          release will be deleted. Note that due to a race
-                          condition of several Travis-CI builds running at the
-                          same time, although unlikely, it's possible for the
-                          number of kept numbered releases to exceed that number
-                          by the number of concurrent Travis-CI builds running.
-    --numbered-release-keep-time NUMBERED_RELEASE_KEEP_TIME
-                          How long to keep the numbered releases for, in
-                          seconds. If set to 0, this check is disabled,
-                          otherwise all numbered releases that are older than
-                          the specified amount of seconds will be deleted.
-    --numbered-release-name NUMBERED_RELEASE_NAME
-                          Release name text. If not specified a predefined text
-                          is used.
-    --numbered-release-body NUMBERED_RELEASE_BODY
-                          Release body text. If not specified a predefined text
-                          is used.
-    --numbered-release-draft
-                          Publish as a draft.
-    --numbered-release-prerelease
-                          Publish as a prerelease.
-    --numbered-release-target-commitish NUMBERED_RELEASE_TARGET_COMMITISH
-                          Commit the release should point to. By default it's
-                          set to $TRAVIS_COMMIT when publishing to the same repo
-                          and not set when publishing to a different repo.
-    --tag-release         Publish a release for a pushed tag. A separate "<tag>"
-                          release will be made whenever a tag is pushed.
-    --tag-release-name TAG_RELEASE_NAME
-                          Release name text. If not specified a predefined text
-                          is used.
-    --tag-release-body TAG_RELEASE_BODY
-                          Release body text. If not specified a predefined text
-                          is used.
-    --tag-release-draft   Publish as a draft.
-    --tag-release-prerelease
-                          Publish as a prerelease.
-    --tag-release-target-commitish TAG_RELEASE_TARGET_COMMITISH
-                          Commit the release should point to. By default it's
-                          set to $TRAVIS_COMMIT when publishing to the same repo
-                          and not set when publishing to a different repo.
-    --tag-release-force-recreate
-                          Force recreation of the release if it already exists.
-                          DANGER. You almost never want to enable this option.
-                          When enabled, your existing tag release will be
-                          deleted, all of its text and artifacts will be forever
-                          lost, and a new tag release will be created based on
-                          this build. Note that by enabling this, someone might
-                          accidentally (or not) restart a tag release build on
-                          Travis-CI, causing the release to be recreated. You
-                          have been warned.
-  ```
-</details>
-
-<details>
-  <summary>ci-release-publisher cleanup_publish --help</summary>
-
-  ```
-  usage: ci-release-publisher cleanup_publish [-h]
-
-  optional arguments:
-    -h, --help  show this help message and exit
-  ```
-</details>
+optional arguments:
+  -h, --help  show this help message and exit
+```
 
 ## Troubleshooting
 
