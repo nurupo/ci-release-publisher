@@ -878,8 +878,9 @@ then it means that the GitHub access token you provided doesn't have enough perm
 
 | Project                                                                    | Comment                                                                                                    |
 |----------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------|
-| [vlc-pause-click-plugin](https://github.com/nurupo/vlc-pause-click-plugin) | [Publishes to a different repo](https://github.com/nurupo/vlc-pause-click-plugin-nightly-builds/releases). |
-| [qTox](https://github.com/qTox/qTox)                                       | [Publishes to a different repo](https://github.com/qTox/qTox-nightly-releases/releases).                   |
+| [vlc-pause-click-plugin](https://github.com/nurupo/vlc-pause-click-plugin) | [Publishes to a different repo](https://github.com/nurupo/vlc-pause-click-plugin-nightly-builds/releases)  |
+| [qTox](https://github.com/qTox/qTox)                                       | [Publishes to a different repo](https://github.com/qTox/qTox-nightly-releases/releases)                    |
+| [OSv](https://github.com/cloudius-systems/osv)                             | [Publishes to a different repo](https://github.com/osvunikernel/osv-nightly-releases/releases)             |
 
 Feel free to open an issue requesting to add your project to the list.
 
