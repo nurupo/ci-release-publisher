@@ -42,7 +42,7 @@ elif [ "$TRAVIS_OS_NAME" == "linux" ]; then
 
   # Install Python >=3.5 that has a non-zero patch version
   # (we assume the zero patch versions to be potentially buggier than desired)
-  pyenv global $(pyenv versions | grep -o ' 3\.[5-99]\.[1-99]' | tail -n1
+  pyenv global $(pyenv versions | grep -o ' 3\.[5-99]\.[1-99]' | tail -n1)
 fi
 
 pip install --upgrade pip
